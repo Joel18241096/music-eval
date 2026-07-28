@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>音乐生成模型 · 主观评测</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ================ 头部 ================ -->
+  <header class="site-header">
+    <div class="container">
+      <h1>🎵 音乐生成模型 · 主观评测</h1>
+      <p class="subtitle">
+        试听测试。请从 <strong>6&nbsp;个维度</strong>、按 <strong>1&nbsp;–&nbsp;5&nbsp;分</strong> 对每个匿名系统的样本进行打分。
+      </p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ================ Step 1: 欢迎 & 昵称 ================ -->
+    <section id="welcome-step" class="step">
+      <h2>欢迎参与评测 👋</h2>
+      <p>
+        您将试听 <strong id="n-songs">6</strong> 首歌曲。每首歌都由八个匿名系统
+        （<strong>A</strong>&nbsp;–&nbsp;<strong>H</strong>）生成。
+        请从六个维度对每个系统打分。
+      </p>
+      <p class="tip">
+        🎧 请佩戴耳机并在安静环境中进行。
+        您的填写进度会自动保存；您可以在任意歌曲间切换，最后统一提交才会记入结果。
+      </p>
+
+      <div class="field">
+        <label for="rater-id">您的姓名 / 昵称</label>
+        <input id="rater-id" type="text" placeholder="例如：张三_2026" maxlength="60" />
+      </div>
+      <div class="field">
+        <label for="rater-bg">音乐背景 <span class="hint">（选填）</span></label>
+        <select id="rater-bg">
+          <option value="">-- 请选择 --</option>
+          <option value="none">无音乐训练背景</option>
+          <option value="amateur">爱好者（自学 / 业余）</option>
+          <option value="student">音乐专业学生</option>
+          <option value="professional">专业音乐人 / 研究者</option>
+        </select>
+      </div>
+
+      <button id="start-btn" class="primary-btn">开始评测 →</button>
+    </section>
+
+    <!-- ================ Step 2: 评测主体 ================ -->
+    <section id="eval-step" class="step hidden">
+
+      <!-- 进度条 -->
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span>第 <strong id="song-index">1</strong> / <span id="song-total">6</span> 首</span>
+          <span class="rater-tag">评测者：<strong id="rater-tag">-</strong></span>
+        </div>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <!-- 歌曲快速跳转按钮组 -->
+        <div class="song-nav" id="song-nav"></div>
+      </div>
+
+      <!-- 歌曲信息 -->
+      <div class="song-info card">
+        <h2 id="song-title">歌曲标题</h2>
+        <div class="song-meta">
+          <span class="tag" id="tag-lang"></span>
+          <span class="tag" id="tag-genre"></span>
+          <span class="tag" id="tag-mood"></span>
+          <span class="tag" id="tag-vocal"></span>
+        </div>
+
+        <details open>
+          <summary>📝 歌词</summary>
+          <pre id="song-lyric" class="lyric-box"></pre>
+        </details>
+
+        <!-- 设计概要: 简短的用户指令演进, 默认展开 -->
+        <details open>
+          <summary>💡 设计概要</summary>
+          <div class="prompt-box">
+            <p><strong>主题：</strong><span id="song-theme"></span></p>
+            <p><strong>结构演进：</strong></p>
+            <p id="song-plan-summary" class="mono"></p>
+          </div>
+        </details>
+
+        <!-- 完整生成提示词 (Plan): 详细段落级 tag, 默认折叠 -->
+        <details>
+          <summary>📜 完整生成提示词 (Plan)</summary>
+          <div class="prompt-box">
+            <div id="song-plan-global"></div>
+            <div id="song-plan-segments"></div>
+          </div>
+        </details>
+      </div>
+
+      <!-- 7 个匿名系统的评分卡片 -->
+      <div id="systems-container"></div>
+
+      <!-- 导航 -->
+      <div class="nav-row">
+        <button id="prev-btn" class="secondary-btn">← 上一首</button>
+        <span id="save-status" class="save-status"></span>
+        <button id="next-btn" class="primary-btn">下一首 →</button>
+      </div>
+    </section>
+
+    <!-- ================ Step 3: 总览 & 提交 ================ -->
+    <section id="review-step" class="step hidden">
+      <h2>📋 提交前总览</h2>
+      <p>请检查每首歌是否都已完成全部打分。点击 "编辑" 可以回去修改；确认无误后再提交。</p>
+      <p class="tip">
+        ⚠ <strong>只有点击下方的"确认并提交"按钮，您的评分才会正式记入研究数据。</strong>
+        在此之前您可以任意来回修改。
+      </p>
+
+      <div id="review-list"></div>
+
+      <div class="nav-row">
+        <button id="back-to-eval-btn" class="secondary-btn">← 返回评测</button>
+        <span id="review-status" class="save-status"></span>
+        <button id="submit-final-btn" class="primary-btn">✓ 确认并提交</button>
+      </div>
+    </section>
+
+    <!-- ================ Step 4: 完成 ================ -->
+    <section id="done-step" class="step hidden">
+      <h2>🎉 感谢您的参与！</h2>
+      <p>您的评分结果已被记录，您可以关闭此页面了。</p>
+      <div class="done-actions">
+        <button id="restart-btn" class="secondary-btn">用新账号再评一次</button>
+      </div>
+      <p id="submit-msg" class="submit-msg"></p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      单盲主观评测 · 音乐生成模型对比研究 · 2026
+    </div>
+  </footer>
+
+  <!-- 五星评分模板 -->
+  <template id="rating-row-tpl">
+    <div class="rating-row">
+      <div class="rating-label">
+        <span class="rating-title"></span>
+        <span class="rating-question"></span>
+      </div>
+      <div class="rating-stars" role="radiogroup">
+        <button type="button" data-score="1" title="1 分">1</button>
+        <button type="button" data-score="2" title="2 分">2</button>
+        <button type="button" data-score="3" title="3 分">3</button>
+        <button type="button" data-score="4" title="4 分">4</button>
+        <button type="button" data-score="5" title="5 分">5</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

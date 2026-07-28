@@ -1,0 +1,28 @@
+# .gitignore for music-eval site
+__MACOSX/
+.DS_Store
+*.zip
+demo_original/
+demo_compressed/
+node_modules/
+.venv/
+.env
+
+# 本地音频文件（音频已托管在 COS，无需推到仓库）
+demo/*/
+# 但保留 demo 下的文档
+!demo/*.md
+
+# 本地后台工具（含 COS 密钥，绝不能公开）
+view_results.py
+view_results.html
+admin.html
+batch_upload_demo.py
+upload_to_cos.py
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 上传时生成的 URL 映射（属于中间产物，不必发布）
+cos_urls.json
