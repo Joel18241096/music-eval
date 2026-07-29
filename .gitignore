@@ -19,6 +19,15 @@ view_results.html
 admin.html
 batch_upload_demo.py
 upload_to_cos.py
+# 任何本地上传脚本 (通常含云厂商 SecretId/SecretKey)
+upload_*.sh
+upload_*.py
+# 常见密钥/凭证文件
+*.key
+*.pem
+secrets.*
+credentials.*
+.env.*
 
 # Python 缓存
 __pycache__/
