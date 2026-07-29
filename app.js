@@ -25,6 +25,10 @@
 
   const $ = (sel) => document.querySelector(sel);
 
+  // 前端展示用的匿名歌曲名 (Sample 01 ~ Sample 06)
+  // 后台上传的 payload 里仍然记录真实 song.id, 便于分析
+  const displayName = (idx) => `Sample ${String(idx + 1).padStart(2, "0")}`;
+
   const welcomeStep = $("#welcome-step");
   const evalStep    = $("#eval-step");
   const reviewStep  = $("#review-step");
@@ -234,14 +238,13 @@
     // 歌曲跳转按钮组
     renderSongNav();
 
-    // 歌曲信息
-    $("#song-title").textContent = song.title;
+    // 歌曲信息 (前端标题统一显示为 Sample 0N, 后台记录仍用真实 song.id)
+    $("#song-title").textContent = displayName(state.currentSong);
     $("#tag-lang").textContent   = song.language;
     $("#tag-genre").textContent  = song.genre;
     $("#tag-mood").textContent   = song.mood;
     $("#tag-vocal").textContent  = song.vocal_style;
     $("#song-lyric").textContent = song.lyric;
-    $("#song-theme").textContent = song.theme;
     // 设计概要: 简短的段落级演进 (从 plan_summary 取)
     $("#song-plan-summary").textContent = song.plan_summary || song.structure || "";
     // 完整 Plan: 全局标签 + 每个段落的详细标签
@@ -363,7 +366,7 @@
 
       btn.innerHTML = `<span class="idx">${idx + 1}</span>` +
                       `<span class="status">${done ? "✓ 完成" : (started ? "进行中" : "未开始")}</span>`;
-      btn.title = `跳转到第 ${idx + 1} 首：${song.title}`;
+      btn.title = `跳转到第 ${idx + 1} 首：${displayName(idx)}`;
       btn.addEventListener("click", () => {
         if (idx === state.currentSong) return;
         state.currentSong = idx;
@@ -499,7 +502,7 @@
       item.innerHTML =
         `<div class="review-idx">${idx + 1}</div>` +
         `<div class="review-info">` +
-          `<div class="review-title">${song.title}</div>` +
+          `<div class="review-title">${displayName(idx)}</div>` +
           `<div class="review-sub">` +
             (done
               ? `<span class="ok">✓ 已完成全部 ${p.total} 项打分</span>`
