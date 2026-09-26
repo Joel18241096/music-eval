@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>音乐生成模型 · 主观评测</title>
+  <title>ICLR 2027 User Study · Music Generation Subjective Evaluation</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- ================ 头部 ================ -->
   <header class="site-header">
     <div class="container">
-      <h1>🎵 音乐生成模型 · 主观评测</h1>
+      <h1>🎵 ICLR 2027 User Study · 音乐生成主观评测</h1>
       <p class="subtitle">
-        试听测试。请从 <strong>6&nbsp;个维度</strong>、按 <strong>1&nbsp;–&nbsp;5&nbsp;分</strong> 对每个匿名系统的样本进行打分。
+        本页为 <strong>ICLR 2027</strong> 投稿论文配套的听感评测。
+        请从 <strong>6&nbsp;个维度</strong>、按 <strong>1&nbsp;–&nbsp;5&nbsp;分</strong> 对每个匿名系统的样本进行打分。
       </p>
     </div>
   </header>
@@ -21,11 +22,11 @@
 
     <!-- ================ Step 1: 欢迎 & 昵称 ================ -->
     <section id="welcome-step" class="step">
-      <h2>欢迎参与评测 👋</h2>
+      <h2>欢迎参与 ICLR 2027 User Study 👋</h2>
       <p>
-        您将试听 <strong id="n-songs">6</strong> 首歌曲。每首歌都由八个匿名系统
-        （<strong>A</strong>&nbsp;–&nbsp;<strong>H</strong>）生成。
-        请从六个维度对每个系统打分。
+        感谢您参与本项 <strong>ICLR 2027</strong> 投稿的用户研究（User Study）。
+        您将试听 <strong id="n-songs">5</strong> 首歌曲，每首歌都由六个匿名系统
+        （<strong>A</strong>&nbsp;–&nbsp;<strong>F</strong>）生成。请从六个维度对每个系统打分。
       </p>
       <p class="tip">
         🎧 请佩戴耳机并在安静环境中进行。
@@ -34,7 +35,7 @@
 
       <div class="field">
         <label for="rater-id">您的姓名 / 昵称</label>
-        <input id="rater-id" type="text" placeholder="例如：张三_2026" maxlength="60" />
+        <input id="rater-id" type="text" placeholder="例如：张三_2027" maxlength="60" />
       </div>
       <div class="field">
         <label for="rater-bg">音乐背景 <span class="hint">（选填）</span></label>
@@ -67,34 +68,25 @@
       <!-- 歌曲信息 -->
       <div class="song-info card">
         <h2 id="song-title">歌曲标题</h2>
-        <div class="song-meta">
-          <span class="tag" id="tag-lang"></span>
-          <span class="tag" id="tag-genre"></span>
-          <span class="tag" id="tag-mood"></span>
-          <span class="tag" id="tag-vocal"></span>
-        </div>
 
+        <!-- 测试目标: 说明这首歌想测什么维度 + 段落级演进 -->
         <details open>
-          <summary>📝 歌词</summary>
+          <summary>🎯 测试目标（Test Target）</summary>
+          <div class="prompt-box">
+            <p id="song-test-target" class="mono"></p>
+          </div>
+        </details>
+
+        <!-- 歌词: 喂给模型的 ground truth lyric, 用于评"歌词保真度" -->
+        <details open>
+          <summary>📝 歌词（Lyric）</summary>
           <pre id="song-lyric" class="lyric-box"></pre>
         </details>
 
-        <!-- 设计概要: 简短的用户指令演进, 默认展开 -->
-        <details open>
-          <summary>💡 设计概要</summary>
-          <div class="prompt-box">
-            <p><strong>结构演进：</strong></p>
-            <p id="song-plan-summary" class="mono"></p>
-          </div>
-        </details>
-
-        <!-- 完整生成提示词 (Plan): 详细段落级 tag, 默认折叠 -->
+        <!-- Prompt 原文: 喂给模型的完整英文描述, 用于评"指令遵循度" -->
         <details>
-          <summary>📜 完整生成提示词 (Plan)</summary>
-          <div class="prompt-box">
-            <div id="song-plan-global"></div>
-            <div id="song-plan-segments"></div>
-          </div>
+          <summary>📜 Prompt 原文（Caption）</summary>
+          <pre id="song-caption" class="lyric-box"></pre>
         </details>
       </div>
 
@@ -141,7 +133,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      单盲主观评测 · 音乐生成模型对比研究 · 2026
+      ICLR 2027 User Study · 音乐生成模型单盲对比研究 · 2026
     </div>
   </footer>
 

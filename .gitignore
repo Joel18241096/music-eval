@@ -22,6 +22,7 @@ upload_to_cos.py
 # 任何本地上传脚本 (通常含云厂商 SecretId/SecretKey)
 upload_*.sh
 upload_*.py
+scripts/upload_*.py
 # 常见密钥/凭证文件
 *.key
 *.pem
@@ -35,3 +36,8 @@ __pycache__/
 
 # 上传时生成的 URL 映射（属于中间产物，不必发布）
 cos_urls.json
+
+# 本次实验的音频文件（同样托管在 COS，不推 git）
+samples/*/
+# IDE 配置（可能被 IDE 扩展写入 token）
+.vscode/ 

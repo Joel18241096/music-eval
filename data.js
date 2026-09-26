@@ -3,31 +3,29 @@
 // ============================================================================
 
 // 音频文件根路径 (audio base URL)
-//   ├─ 留空 ""              → 使用本地 demo/ 目录 (需前端仓库内自带音频)
+//   ├─ 留空 ""              → 使用本地 samples/ 目录 (需前端仓库内自带音频)
 //   └─ 填入 COS 域名 (末尾无斜杠) → 用腾讯云 COS 托管音频
 //
-// 说明: 前端拼接规则为  <AUDIO_BASE>/<folder>_<songId>.<ext>
-//       (即 batch_upload_demo.py 上传时使用的 key 命名规则)
-window.AUDIO_BASE = "https://sprproxy-1258344707.cos.ap-shanghai.myqcloud.com";
+// 说明: 前端拼接规则为  <AUDIO_BASE>/<folder>/demo<audio_idx>.<ext>
+//       (即 scripts/upload_samples.py 上传时使用的 key 命名规则)
+window.AUDIO_BASE = "https://sprproxy-1258344707.cos.ap-shanghai.myqcloud.com/ICLR2027_musicstar/samples";
 
-// 8 个待评测模型。ext 是各自在 COS 上的真实扩展名, 请勿修改。
-// 单盲展示时会给每位评测者随机打乱成 A~H。
+// 6 个待评测模型。folder 与本地 samples/ 下的子目录同名, ext 是各自音频真实扩展名。
+// 单盲展示时会给每位评测者独立随机打乱成 A~F。
 window.MODELS = [
-  { key: "SongSculpt",  folder: "SongSculpt",  ext: "flac" },
-  { key: "acestep1.5",  folder: "acestep1.5",  ext: "wav"  },
-  { key: "diffrhythm2", folder: "diffrhythm2", ext: "mp3"  },
-  { key: "heartlib",    folder: "heartlib",    ext: "mp3"  },
-  { key: "levo2",       folder: "levo2",       ext: "flac" },
-  { key: "muse",        folder: "muse",        ext: "wav"  },
-  { key: "suno",        folder: "suno",        ext: "mp3"  },
-  { key: "yue",         folder: "yue",         ext: "mp3"  },
+  { key: "Heartmula",  folder: "Heartmula",  ext: "wav"  },
+  { key: "Minimax3",   folder: "Minimax3",   ext: "wav"  },
+  { key: "MusicSTAR",  folder: "MusicSTAR",  ext: "flac" },
+  { key: "acestep1.5", folder: "acestep1.5", ext: "wav"  },
+  { key: "levo2",      folder: "levo2",      ext: "flac" },
+  { key: "muse",       folder: "muse",       ext: "wav"  },
 ];
 
 // 6 个主观评价维度（中文版，对应 objective_questionnaire.md）
 window.DIMENSIONS = [
   {
     key: "overall",
-    title: "整体音乐质量 (Overall Musical Quality)",
+    title: "整体音乐质量（Overall Musical Quality）",
     question: "您如何评价这首生成歌曲的整体音乐质量？",
     levels: {
       5: "5 分（极佳）：接近专业制作的完整歌曲，音乐性和整体听感优秀",
@@ -39,7 +37,7 @@ window.DIMENSIONS = [
   },
   {
     key: "vocal_acc",
-    title: "人声与伴奏质量 (Vocal & Accompaniment Quality)",
+    title: "人声与伴奏质量（Vocal & Accompaniment Quality）",
     question: "您如何评价人声演唱和器乐伴奏的质量？",
     levels: {
       5: "5 分：人声自然富有表现力，伴奏丰富真实，整体音质高",
@@ -51,19 +49,19 @@ window.DIMENSIONS = [
   },
   {
     key: "harmony",
-    title: "人声与伴奏协同 (Vocal–Accompaniment Harmony)",
-    question: "人声与伴奏作为一首完整歌曲的配合程度如何？",
+    title: "人声—伴奏融合度（Vocal-Accompaniment Harmony）",
+    question: "人声与伴奏作为一首完整歌曲的融合程度如何？",
     levels: {
-      5: "5 分：全曲人声与伴奏高度同步、平衡、相互衬托",
-      4: "4 分：总体协调良好，仅有少量小的不匹配",
-      3: "3 分：协调尚可，但在不同段落间不一致",
+      5: "5 分：全曲人声与伴奏高度融合、平衡、相互衬托",
+      4: "4 分：总体融合良好，仅有少量小的不匹配",
+      3: "3 分：融合尚可，但在不同段落间不一致",
       2: "2 分：人声与伴奏经常失衡或不匹配",
       1: "1 分：人声与伴奏听起来脱节或彼此矛盾",
     },
   },
   {
     key: "structure",
-    title: "歌曲结构清晰度 (Song Structure Clarity)",
+    title: "歌曲结构清晰度（Song Structure Clarity）",
     question: "整首歌曲结构的清晰度、连贯性与组织性如何？",
     levels: {
       5: "5 分：结构非常清晰，段落组织良好，音乐推进连贯",
@@ -75,8 +73,8 @@ window.DIMENSIONS = [
   },
   {
     key: "lyric",
-    title: "歌词演唱准确度 (Lyric Accuracy)",
-    question: "生成歌曲对给定歌词的演唱准确程度如何？",
+    title: "歌词保真度（Lyric Fidelity）",
+    question: "生成歌曲对给定歌词的还原保真程度如何？",
     levels: {
       5: "5 分：歌词准确、清晰演唱，几乎没有遗漏、替换或发音错误",
       4: "4 分：有少量歌词错误，但不影响整体理解",
@@ -87,7 +85,7 @@ window.DIMENSIONS = [
   },
   {
     key: "faithfulness",
-    title: "指令遵循度 (Instruction Faithfulness)",
+    title: "指令遵循度（Instruction Adherence）",
     question: "生成的歌曲对给定文字提示的遵循程度如何？",
     levels: {
       5: "5 分：完全体现所要求的风格、情绪、结构、配器等条件",
@@ -99,254 +97,65 @@ window.DIMENSIONS = [
   },
 ];
 
-// 6 首歌的完整信息（歌词 + prompt 概述 + 全局标签）
-// 展示顺序: EE4_EN → DD4_EN → BB2_EN → DD3_EN → DD1_ZH → GG3_ZH
+// 5 首歌的原始 prompt 与歌词（严格来自 prompt_lyrics.md, 未加任何改写）
+// 展示顺序 & audio_idx 与本地 samples/<model>/demo{1..5} 文件名一一对应:
+//   demo1 → IN_208, demo2 → VL_208, demo3 → VE_201, demo4 → MD_101, demo5 → IN_106
+// 字段说明:
+//   id           - 歌曲唯一标识
+//   audio_idx    - 音频文件编号 (拼接 demo<audio_idx>.<ext>)
+//   test_target  - 该歌曲测试的维度类型 + 段落级演进 (来自 md "测试目标" 行)
+//   caption      - 喂给模型的完整英文 prompt (来自 md "caption" 字段)
+//   lyric        - 喂给模型的歌词 (来自 md "gt_lyric" 字段, 保留 ; 与 . 原始分隔)
 window.SONGS = [
   {
-    id: "EE4_EN",
-    title: "EE4 · 独立流行（英文）",
-    language: "英文",
-    genre: "独立流行",
-    mood: "颂歌感、情绪充沛、鼓舞人心",
-    theme: "希望与共鸣",
-    vocal_style: "女主唱+和声、合唱团",
-    structure: "[intro] → [verse] 深情女主唱 → [chorus] 有力女主唱+和声 → [inst] → [verse] 深情女主唱 → [chorus] 有力女主唱+和声 → [bridge] 混合合唱团 → [chorus] 有力女主唱+和声 → [outro]",
-    plan_summary: "[intro] vocal_none → [verse] emotive female lead vocal → [chorus] powerful female lead vocal, layered harmonies → [inst] vocal_none → [verse] emotive female lead vocal → [chorus] powerful female lead vocal, layered harmonies → [bridge] mixed choir, unison → [chorus] powerful female lead vocal, layered harmonies → [outro] vocal_none",
-    plan: {
-      global_tags: {
-        global_genre: "indie pop",
-        global_sound_style: "hybrid, polished, warm",
-        global_vocal_style: "female vocal with harmonies, choir",
-        global_mood: "anthemic, emotional, uplifting",
-        global_energy_level: "medium-high",
-        global_theme: "hope, community",
-      },
-      segments: [
-        { type: "intro",  tags: { energy_level: "low",         relative_energy: "lower",   energy_change: "stable",           mood: "serene, contemplative, peaceful",      vocal_presence: "none",                                              function: "introduction", density: "sparse",     sound_style: "acoustic, warm, organic, clean", instrumentation: "piano, acoustic guitar" } },
-        { type: "verse",  tags: { energy_level: "medium-low",  relative_energy: "similar", energy_change: "stable",           mood: "nostalgic, melancholic, sentimental",  vocal_presence: "emotive female lead vocal",                         function: "sustain",      density: "sparse",     sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "chorus", tags: { energy_level: "medium-high", relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, uplifting",       vocal_presence: "powerful female lead vocal, layered harmonies",     function: "climax",       density: "dense",      sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "inst",   tags: { energy_level: "medium",      relative_energy: "lower",   energy_change: "decreasing",       mood: "dreamy, melancholic, introspective",   vocal_presence: "none",                                              function: "contrast",     density: "moderate",   sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "verse",  tags: { energy_level: "medium",      relative_energy: "similar", energy_change: "increasing",       mood: "nostalgic, melancholic, sentimental",  vocal_presence: "emotive female lead vocal",                         function: "sustain",      density: "moderate",   sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "chorus", tags: { energy_level: "high",        relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, uplifting",       vocal_presence: "powerful female lead vocal, layered harmonies",     function: "climax",       density: "dense",      sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "bridge", tags: { energy_level: "high",        relative_energy: "lower",   energy_change: "stable",           mood: "anthemic, emotional, uplifting",       vocal_presence: "mixed choir, unison",                               function: "contrast",     density: "dense",      sound_style: "hybrid, cinematic, lush",        instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, powerful",        vocal_presence: "powerful female lead vocal, layered harmonies",     function: "climax",       density: "very dense", sound_style: "hybrid, polished, warm",         instrumentation: "piano, acoustic guitar, bass, drums" } },
-        { type: "outro",  tags: { energy_level: "low",         relative_energy: "much lower",energy_change: "decreasing",     mood: "serene, contemplative, peaceful",      vocal_presence: "none",                                              function: "conclusion",   density: "sparse",     sound_style: "acoustic, clean, airy",          instrumentation: "piano" } },
-      ],
+    id: "IN_208",
+    audio_idx: 1,
+    test_target: {
+      dimension: "instrumentation",
+      progression: "tin whistle, fiddle → fiddle, accordion, acoustic guitar, hand drum → fiddle, accordion, acoustic guitar, hand drum, tin whistle → electric guitar, bass guitar, drum kit, fiddle, accordion → fiddle, accordion, acoustic guitar, hand drum → fiddle, accordion, acoustic guitar, hand drum, tin whistle → electric guitar, bass guitar, drum kit, fiddle, accordion → acoustic guitar, tin whistle, cello → electric guitar, bass guitar, drum kit, fiddle, tin whistle → tin whistle, fiddle",
     },
-    lyric: `[intro] [Music starts] [Melody continues]
-[verse] Little lights begin to shine. Painting colors through the night. Every dream can learn to fly. When we never say goodbye.
-[chorus] Come together voices bright. Fill the stars with endless light. Every heartbeat joins the song. We have all belonged along.
-[inst] [Instrumental Section]
-[verse] Tiny hopes become the dawn. After every shadow's gone. Every smile begins to bloom. Like the spring inside the room.
-[chorus] Come together voices bright. Fill the stars with endless light. Every heartbeat joins the song. We have all belonged along.
-[bridge] Children's voices fill the air. Hope is growing everywhere.
-[chorus] Come together voices bright. Fill the stars with endless light. Every heartbeat joins the song. We have all belonged along.
-[outro] [Music fades out]`,
+    caption: "A ten-section celtic folk song with elements of folk rock ; It opens with a calm and nostalgic intro. Energy is low and holds steady. It is instrumental, with no lead vocal, set over tin whistle and fiddle. The sound is warm, intimate, and acoustic, with a slow and laid-back groove ; Then comes a nostalgic and storytelling verse. Energy is low and holds steady. It is carried by warm and sung male vocals, set over fiddle, accordion, acoustic guitar, and hand drum. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; Next is a hopeful and yearning pre-chorus. Energy is medium and builds throughout. It is carried by warm and sung male vocals, set over fiddle, accordion, acoustic guitar, hand drum, and tin whistle. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; After that comes an uplifting and warm chorus. Energy is medium and holds steady. It is carried by warm and sung male vocals, set over electric guitar, bass guitar, drum kit, fiddle, and accordion. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; This leads into a nostalgic and storytelling verse. Energy is low and holds steady. It is carried by warm and sung male vocals, set over fiddle, accordion, acoustic guitar, and hand drum. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; Following that is a hopeful and yearning pre-chorus. Energy is medium and builds throughout. It is carried by warm and sung male vocals, set over fiddle, accordion, acoustic guitar, hand drum, and tin whistle. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; Then an uplifting and warm chorus. Energy is medium and holds steady. It is carried by warm and sung male vocals, set over electric guitar, bass guitar, drum kit, fiddle, and accordion. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; Then comes a reflective and tender bridge. Energy is low and builds throughout. It is carried by warm and sung male vocals, set over acoustic guitar, tin whistle, and cello. The sound is warm, intimate, and acoustic, with a slow and laid-back groove ; Next is an uplifting and warm chorus. Energy is medium and holds steady. It is carried by warm and sung male vocals, set over electric guitar, bass guitar, drum kit, fiddle, and tin whistle. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; It closes with a serene and nostalgic outro. Energy is low and fades out. It is instrumental, with no lead vocal, set over tin whistle and fiddle. The sound is warm, intimate, and acoustic, with a slow and laid-back groove.",
+    lyric: "[intro] ; [verse] The ferry leaves at half past six. For the island in the mist. My grandmother waved from the dock. With a handkerchief in her fist. And the fiddler played a parting reel. That echoed o er the foam ; [pre-chorus] Oh the sea she is a widow maker. But she brings us home. Every wave a rolling meadow. Every star a stone ; [chorus] Raise a glass to the island. To the rock and to the wave. To the ones who work the water. To the bold and to the brave. Sing hey for the morning ferry. Sing ho for the evening tide. The island is my mother. And the ocean is my bride ; [verse] The pub is warm with peat smoke. And the stout is dark as night. Old Seamus tells the stories. Of the selkies and the light. And the band strikes up a jig. That sets the floor alight ; [pre-chorus] Oh the sea she is a widow maker. But she brings us home. Every wave a rolling meadow. Every star a stone ; [chorus] Raise a glass to the island. To the rock and to the wave. To the ones who work the water. To the bold and to the brave. Sing hey for the morning ferry. Sing ho for the evening tide. The island is my mother. And the ocean is my bride ; [bridge] And when the storm comes howling. And the boats are tied up tight. We gather by the fire. And sing away the night ; [chorus] Raise a glass to the island. To the rock and to the wave. To the ones who work the water. To the bold and to the brave. Sing hey for the morning ferry. Sing ho for the evening tide. The island is my mother. And the ocean is my bride ; [outro]",
   },
   {
-    id: "DD4_EN",
-    title: "DD4 · 另类摇滚（英文）",
-    language: "英文",
-    genre: "另类摇滚",
-    mood: "激烈、对抗、张力强",
-    theme: "冲突与对抗",
-    vocal_style: "男女对唱",
-    structure: "[intro] → [verse] 粗糙男主唱 → [chorus] 有力女主唱 → [inst] → [verse] 有力女主唱 → [chorus] 男女对唱 → [bridge] 粗糙男主唱 → [chorus] 男女对唱 → [outro]",
-    plan_summary: "[intro] vocal_none → [verse] raw male lead vocal → [chorus] powerful female lead vocal → [inst] vocal_none → [verse] powerful female lead vocal → [chorus] male lead vocal + female lead vocal → [bridge] raw male lead vocal → [chorus] male lead vocal + female lead vocal → [outro] vocal_none",
-    plan: {
-      global_tags: {
-        global_genre: "alternative rock",
-        global_sound_style: "hybrid, raw, distorted, gritty",
-        global_vocal_style: "male vocal, female vocal, duet",
-        global_mood: "aggressive, confrontational, intense",
-        global_energy_level: "very high",
-        global_theme: "tension, confrontation",
-      },
-      segments: [
-        { type: "intro",  tags: { energy_level: "medium",      relative_energy: "lower",   energy_change: "stable",           mood: "aggressive, intense, raw",             vocal_presence: "none",                                                function: "introduction", density: "moderate",   sound_style: "hybrid, raw, distorted, gritty", instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "verse",  tags: { energy_level: "high",        relative_energy: "similar", energy_change: "increasing",       mood: "aggressive, confrontational, intense", vocal_presence: "raw male lead vocal",                                 function: "sustain",      density: "dense",      sound_style: "hybrid, raw, distorted, gritty", instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "aggressive, confrontational, intense", vocal_presence: "powerful female lead vocal",                          function: "climax",       density: "very dense", sound_style: "hybrid, raw, distorted, gritty", instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "inst",   tags: { energy_level: "high",        relative_energy: "lower",   energy_change: "stable",           mood: "aggressive, intense, raw",             vocal_presence: "none",                                                function: "contrast",     density: "dense",      sound_style: "hybrid, raw, distorted, gritty", instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "verse",  tags: { energy_level: "high",        relative_energy: "similar", energy_change: "increasing",       mood: "aggressive, defiant, intense",         vocal_presence: "powerful female lead vocal",                          function: "sustain",      density: "dense",      sound_style: "hybrid, raw, distorted, gritty", instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "aggressive, confrontational, intense", vocal_presence: "male lead vocal, female lead vocal, vocal harmonies", function: "climax",       density: "very dense", sound_style: "raw, distorted, gritty",         instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "bridge", tags: { energy_level: "medium-high", relative_energy: "lower",   energy_change: "decreasing",       mood: "aggressive, tense, confrontational",   vocal_presence: "raw male lead vocal",                                 function: "contrast",     density: "dense",      sound_style: "hybrid, raw, gritty",            instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "aggressive, anthemic, powerful",       vocal_presence: "male lead vocal, female lead vocal, vocal harmonies", function: "climax",       density: "very dense", sound_style: "raw, distorted, gritty",         instrumentation: "distorted electric guitar, acoustic drum kit" } },
-        { type: "outro",  tags: { energy_level: "medium",      relative_energy: "lower",   energy_change: "decreasing",       mood: "melancholic, introspective, raw",      vocal_presence: "none",                                                function: "conclusion",   density: "moderate",   sound_style: "hybrid, raw, gritty",            instrumentation: "distorted electric guitar, acoustic drum kit" } },
-      ],
+    id: "VL_208",
+    audio_idx: 2,
+    test_target: {
+      dimension: "vocal_lead",
+      progression: "none → raspy, sung, male → smooth, sung, female → raspy, sung, male → smooth, sung, female → raspy, sung, male → smooth, sung, female → none",
     },
-    lyric: `[intro] [Music starts] [Melody continues]
-[verse] You said run. I said stay. You built walls. I found ways.
-[chorus] We don't break. We ignite. Every clash becomes our light. Louder now than yesterday. We were born this way.
-[inst] [Instrumental Section]
-[verse] You drew lines. I crossed through. Every doubt only grew. Stronger than before.
-[chorus] We don't break. We ignite. Every clash becomes our light. Louder now than yesterday. We were born this way.
-[bridge] Maybe winning means we both survive. Not goodbye.
-[chorus] We don't break. We ignite. Every clash becomes our light. Louder now than yesterday. We were born this way.
-[outro] [Music fades out]`,
+    caption: "An eight-section folk song with elements of americana ; It opens with a calm and nostalgic intro. Energy is low and holds steady. It is instrumental, with no lead vocal, set over fingerpicked acoustic guitar. The sound is warm, intimate, and acoustic, with a slow and laid-back groove ; Then comes a nostalgic and storytelling verse. Energy is low and holds steady. It is carried by raspy and sung male vocals, set over fingerpicked acoustic guitar and upright bass. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; Next is an uplifting and warm chorus. Energy is medium and holds steady. It is carried by smooth and sung female vocals, set over acoustic guitar, banjo, upright bass, brushed drums, and fiddle. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; After that comes a nostalgic and storytelling verse. Energy is low and holds steady. It is carried by raspy and sung male vocals, set over fingerpicked acoustic guitar and upright bass. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; This leads into an uplifting and warm chorus. Energy is medium and holds steady. It is carried by smooth and sung female vocals, set over acoustic guitar, banjo, upright bass, brushed drums, and fiddle. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; Following that is a nostalgic and storytelling verse. Energy is low and holds steady. It is carried by raspy and sung male vocals, set over fingerpicked acoustic guitar and upright bass. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and straight groove ; Then an uplifting and warm chorus. Energy is medium and holds steady. It is carried by smooth and sung female vocals, set over acoustic guitar, banjo, upright bass, brushed drums, and fiddle. The sound is warm, polished, and organic, with a mid-tempo, driving, and straight groove ; It ends with a serene and nostalgic outro. Energy is low and fades out. It is instrumental, with no lead vocal, set over fingerpicked acoustic guitar. The sound is warm, intimate, and acoustic, with a slow and laid-back groove.",
+    lyric: "[intro] ; [verse] Dusty boots on a gravel road. Forty years of heavy loads. My hands are maps of calluses. From everything I owed. But I never owed the sunset. And it never let me down ; [chorus] Rest now. Lay your burdens down. The field is plowed. The day is done. Rest now. Let the evening crown. Everything your heart has won ; [verse] The barn leans to the west a bit. Like me it needs a rest. The fence I built in seventy nine. Has stood up to the test. Some things I fixed with wire and prayer. Some I never fixed ; [chorus] Rest now. Lay your burdens down. The field is plowed. The day is done. Rest now. Let the evening crown. Everything your heart has won ; [verse] My daughter has my father's eyes. And her mother's gentle grace. She says she wants the city lights. I say that is okay. This old dirt will be right here. If she ever needs a place ; [chorus] Rest now. Lay your burdens down. The field is plowed. The day is done. Rest now. Let the evening crown. Everything your heart has won ; [outro]",
   },
   {
-    id: "BB2_EN",
-    title: "BB2 · Trap / Hip-Hop（英文）",
-    language: "英文",
-    genre: "Trap / 嘻哈",
-    mood: "自信、坚定、律动感强",
-    theme: "奋斗与野心",
-    vocal_style: "男声说唱",
-    structure: "[intro] 原声吉他 → [verse] 鼓机+合成贝斯 → [chorus] 808+trap hi-hats → [inst] 钢琴 → [verse] 干净电吉他 → [chorus] 失真808 → [bridge] 钢琴+合成器 → [chorus] 808 → [outro] 低频铺垫",
-    plan_summary: "[intro] acoustic guitar → [verse] drum machine, synth bass → [chorus] 808 bassline, trap hi-hats, atmospheric synth pad → [inst] piano, drum machine → [verse] clean electric guitar, drum machine, bassline → [chorus] distorted 808 bass, trap hi-hats → [bridge] piano, atmospheric synth pad → [chorus] 808 bassline, trap hi-hats, atmospheric synth pad → [outro] low-frequency synth pad",
-    plan: {
-      global_tags: {
-        global_genre: "trap, hip-hop",
-        global_sound_style: "electronic, polished, bright",
-        global_vocal_style: "male rap",
-        global_mood: "confident, assertive, rhythmic",
-        global_energy_level: "medium-high",
-        global_theme: "hustle, ambition",
-      },
-      segments: [
-        { type: "intro",  tags: { energy_level: "low",         relative_energy: "lower",  energy_change: "stable",           mood: "melancholic, introspective, dreamy",   vocal_presence: "none",                          function: "introduction", density: "sparse",     sound_style: "acoustic, warm, organic, clean",   instrumentation: "acoustic guitar" } },
-        { type: "verse",  tags: { energy_level: "medium-low",  relative_energy: "similar",energy_change: "increasing",       mood: "confident, assertive, rhythmic",       vocal_presence: "male rap, confident flow",      function: "sustain",      density: "moderate",   sound_style: "electronic, polished, bright",     instrumentation: "drum machine, synth bass" } },
-        { type: "chorus", tags: { energy_level: "medium-high", relative_energy: "higher", energy_change: "building to peak", mood: "confident, assertive, energetic",      vocal_presence: "male rap, ad-libs",             function: "climax",       density: "dense",      sound_style: "electronic, polished, bright",     instrumentation: "808 bassline, trap hi-hats, atmospheric synth pad" } },
-        { type: "inst",   tags: { energy_level: "medium",      relative_energy: "lower",  energy_change: "decreasing",       mood: "melancholic, introspective, dreamy",   vocal_presence: "none",                          function: "contrast",     density: "moderate",   sound_style: "hybrid, polished, warm",           instrumentation: "piano, drum machine" } },
-        { type: "verse",  tags: { energy_level: "medium",      relative_energy: "similar",energy_change: "increasing",       mood: "confident, assertive, rhythmic",       vocal_presence: "male rap, assertive flow",      function: "sustain",      density: "moderate",   sound_style: "electronic, polished, bright",     instrumentation: "clean electric guitar, drum machine, bassline" } },
-        { type: "chorus", tags: { energy_level: "high",        relative_energy: "higher", energy_change: "building to peak", mood: "aggressive, confident, confrontational",vocal_presence: "male rap, ad-libs",             function: "climax",       density: "dense",      sound_style: "electronic, raw, distorted, gritty",instrumentation: "distorted 808 bass, trap hi-hats" } },
-        { type: "bridge", tags: { energy_level: "medium-low",  relative_energy: "lower",  energy_change: "decreasing",       mood: "melancholic, introspective, dreamy",   vocal_presence: "male rap, conversational",      function: "contrast",     density: "sparse",     sound_style: "hybrid, polished, warm",           instrumentation: "piano, atmospheric synth pad" } },
-        { type: "chorus", tags: { energy_level: "high",        relative_energy: "similar",energy_change: "stable",           mood: "confident, assertive, energetic",      vocal_presence: "male rap, ad-libs",             function: "climax",       density: "dense",      sound_style: "electronic, polished, bright",     instrumentation: "808 bassline, trap hi-hats, atmospheric synth pad" } },
-        { type: "outro",  tags: { energy_level: "very low",    relative_energy: "much lower",energy_change: "decreasing",     mood: "melancholic, introspective, atmospheric",vocal_presence: "none",                        function: "conclusion",   density: "very sparse",sound_style: "electronic, polished, bright",     instrumentation: "low-frequency synth pad" } },
-      ],
+    id: "VE_201",
+    audio_idx: 3,
+    test_target: {
+      dimension: "vocal_ensemble",
+      progression: "none → none → two-part harmony → none → three-part harmony → three-part harmony, backing vocals → stacked harmonies, backing vocals, ad-libs → none",
     },
-    lyric: `[intro] [Guitar Intro] [Melody continues]
-[verse] Started low but kept the flame. No shortcuts on this road I made. Every loss became my fuel. Now the future knows my name.
-[chorus] Hands up high we never fold. Rising louder never slow. Built from dust into the gold. Watch the whole skyline glow.
-[inst] [Instrumental Section]
-[verse] City echoes feel the beat. Every lesson made me sharp. Moving steady never sleep. Fire still lives inside my heart.
-[chorus] Hands up high we never fold. Rising louder never slow. Built from dust into the gold. Watch the whole skyline glow.
-[bridge] Every closed door made me climb. Every setback changed my pace. Now I'm standing in the light. Looking failure in the face.
-[chorus] Hands up high we never fold. Rising louder never slow. Built from dust into the gold. Watch the whole skyline glow.
-[outro] [Music fades out]`,
+    caption: "An eight-section pop ballad song with elements of adult contemporary ; It opens with a tender and dreamy intro. Energy is low and builds throughout. It is instrumental, with no lead vocal, set over piano and ambient pad. The sound is warm, intimate, and acoustic, with a slow and laid-back groove ; Then comes a melancholic and tender verse. Energy is low and holds steady. It is carried by breathy and softly sung female vocals, set over piano and soft synth pad. The sound is warm, intimate, and hybrid, with a slow, laid-back, and backbeat groove ; Next is an euphoric and passionate chorus. Energy is high and holds steady. It is carried by powerful and belted female vocals, backed by two-part harmony, set over piano, strings, drum kit, and electric bass. The sound is lush, polished, and hybrid, with a mid-tempo, driving, and backbeat groove ; After that comes a melancholic and tender verse. Energy is low and holds steady. It is carried by breathy and softly sung female vocals, set over piano and soft synth pad. The sound is warm, intimate, and hybrid, with a slow, laid-back, and backbeat groove ; This leads into an euphoric and passionate chorus. Energy is high and holds steady. It is carried by powerful and belted female vocals, backed by three-part harmony, set over piano, strings, drum kit, and electric bass. The sound is lush, polished, and hybrid, with a mid-tempo, driving, and backbeat groove ; Following that is a dramatic and emotional bridge. Energy is medium and builds throughout. It is carried by powerful and belted female vocals, backed by three-part harmony and backing vocals, set over piano, strings, and drum kit. The sound is lush, cinematic, and hybrid, with a mid-tempo, driving, and backbeat groove ; Then an euphoric and passionate chorus. Energy is very high and holds steady. It is carried by powerful and belted female vocals, backed by stacked harmonies, backing vocals, and ad-libs, set over piano, strings, drum kit, and electric bass. The sound is lush, polished, and hybrid, with a mid-tempo, driving, and backbeat groove ; It ends with a bittersweet and serene outro. Energy is low and fades out. It is instrumental, with no lead vocal, set over piano and ambient pad. The sound is warm, intimate, and acoustic, with a slow and laid-back groove.",
+    lyric: "[intro] ; [verse] The attic stairs still creak the same. The boxes hold the years. Your letters tied with faded string. Have dried a thousand tears. I read them when the rain comes down. And time just disappears ; [chorus] We were golden. We were young. Every word a song unsung. We were endless summer skies. With forever in our eyes. And though the seasons turned us grey. Those golden days remain ; [verse] The porch swing sways in evening air. Like it is keeping time. With every ghost of laughter. Every reason. Every rhyme. The years have been both kind and cruel. But they left us this prime ; [chorus] We were golden. We were young. Every word a song unsung. We were endless summer skies. With forever in our eyes. And though the seasons turned us grey. Those golden days remain ; [bridge] Hold the faded photographs. Up to the evening light. We are still inside them somewhere. Golden and bright ; [chorus] We were golden. We were young. Every word a song unsung. We were endless summer skies. With forever in our eyes. And though the seasons turned us grey. Those golden days remain. Golden days remain ; [outro]",
   },
   {
-    id: "DD3_EN",
-    title: "DD3 · 电影感管弦乐（英文）",
-    language: "英文",
-    genre: "电影配乐 / 管弦",
-    mood: "戏剧化、热烈、激烈",
-    theme: "史诗冲突与命运",
-    vocal_style: "男女对唱",
-    structure: "[intro] → [verse] 气声女主唱 → [chorus] 男女合唱+和声 → [inst] → [verse] 气声男主唱 → [chorus] 男女合唱+和声 → [bridge] 深情女主唱 → [chorus] 男女合唱+和声 → [outro]",
-    plan_summary: "[intro] vocal_none → [verse] breathy female lead vocal → [chorus] male lead vocal, female lead vocal, vocal harmonies → [inst] vocal_none → [verse] breathy male lead vocal → [chorus] male lead vocal, female lead vocal, vocal harmonies → [bridge] emotive female lead vocal → [chorus] male lead vocal, female lead vocal, vocal harmonies → [outro] vocal_none",
-    plan: {
-      global_tags: {
-        global_genre: "cinematic, orchestral",
-        global_sound_style: "orchestral, cinematic, lush, warm",
-        global_vocal_style: "male vocal, female vocal, duet",
-        global_mood: "dramatic, passionate, intense",
-        global_energy_level: "very high",
-        global_theme: "epic conflict, destiny",
-      },
-      segments: [
-        { type: "intro",  tags: { energy_level: "medium",      relative_energy: "lower",   energy_change: "stable",           mood: "dramatic, passionate, intense",         vocal_presence: "none",                                                function: "introduction", density: "moderate",   sound_style: "orchestral, cinematic, lush, warm",     instrumentation: "grand piano, cinematic strings" } },
-        { type: "verse",  tags: { energy_level: "medium-high", relative_energy: "similar", energy_change: "increasing",       mood: "dramatic, passionate, intense",         vocal_presence: "breathy female lead vocal",                            function: "sustain",      density: "dense",      sound_style: "orchestral, cinematic, lush, warm",     instrumentation: "grand piano, cinematic strings" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, powerful",         vocal_presence: "male lead vocal, female lead vocal, vocal harmonies",  function: "climax",       density: "very dense", sound_style: "orchestral, cinematic, lush",           instrumentation: "grand piano, cinematic strings" } },
-        { type: "inst",   tags: { energy_level: "high",        relative_energy: "lower",   energy_change: "decreasing",       mood: "dramatic, passionate, intense",         vocal_presence: "none",                                                function: "contrast",     density: "dense",      sound_style: "orchestral, cinematic, lush, warm",     instrumentation: "grand piano, cinematic strings" } },
-        { type: "verse",  tags: { energy_level: "high",        relative_energy: "similar", energy_change: "increasing",       mood: "dramatic, passionate, intense",         vocal_presence: "breathy male lead vocal",                              function: "sustain",      density: "dense",      sound_style: "orchestral, cinematic, polished, lush", instrumentation: "grand piano, cinematic strings" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, powerful",         vocal_presence: "male lead vocal, female lead vocal, vocal harmonies",  function: "climax",       density: "very dense", sound_style: "orchestral, cinematic, lush",           instrumentation: "grand piano, cinematic strings" } },
-        { type: "bridge", tags: { energy_level: "medium",      relative_energy: "lower",   energy_change: "decreasing",       mood: "melancholic, introspective, sentimental",vocal_presence: "emotive female lead vocal",                            function: "contrast",     density: "moderate",   sound_style: "acoustic, cinematic, warm, airy",       instrumentation: "grand piano, cinematic strings" } },
-        { type: "chorus", tags: { energy_level: "very high",   relative_energy: "higher",  energy_change: "building to peak", mood: "anthemic, emotional, powerful",         vocal_presence: "male lead vocal, female lead vocal, vocal harmonies",  function: "climax",       density: "very dense", sound_style: "orchestral, cinematic, lush, warm",     instrumentation: "grand piano, cinematic strings" } },
-        { type: "outro",  tags: { energy_level: "low",         relative_energy: "much lower",energy_change: "decreasing",     mood: "serene, contemplative, peaceful",       vocal_presence: "none",                                                function: "conclusion",   density: "sparse",     sound_style: "acoustic, clean, airy",                 instrumentation: "grand piano, cinematic strings" } },
-      ],
+    id: "MD_101",
+    audio_idx: 4,
+    test_target: {
+      dimension: "mood",
+      progression: "melancholic, quiet → melancholic, tender → hopeful, gentle → uplifting, warm → calm, hopeful → melancholic, tender → hopeful, gentle → uplifting, warm → serene, hopeful",
     },
-    lyric: `[intro] [Music starts] [Melody continues]
-[verse] She said hope can heal the night. He said scars still hold the rain. She reached for tomorrow's light. He remembered every pain.
-[chorus] Two hearts standing face to face. One believes and one lets go. Time decides whose truth remains. Where the silent rivers flow.
-[inst] [Instrumental Section]
-[verse] She became the rising dawn. He became the fading star. Yet they found one final song. Carrying them both afar.
-[chorus] Two hearts standing face to face. One believes and one lets go. Time decides whose truth remains. Where the silent rivers flow.
-[bridge] Love is never black or white. Both were right beneath the sky.
-[chorus] Two hearts standing face to face. One believes and one lets go. Time decides whose truth remains. Where the silent rivers flow.
-[outro] [Music fades out]`,
+    caption: "A nine-section mandopop song with elements of healing ballad ; It opens with a melancholic and quiet intro. Energy is low and builds throughout. It is instrumental, with no lead vocal, set over piano and strings. The sound is warm, intimate, and acoustic, with a slow and laid-back groove ; Then comes a melancholic and tender verse. Energy is low and holds steady. It is carried by breathy and softly sung female vocals, set over piano and acoustic guitar. The sound is warm, intimate, and acoustic, with a slow, laid-back, and backbeat groove ; Next is a hopeful and gentle pre-chorus. Energy is medium and builds throughout. It is carried by breathy and softly sung female vocals, set over piano, strings, and acoustic guitar. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and backbeat groove ; After that comes an uplifting and warm chorus. Energy is high and holds steady. It is carried by powerful and belted female vocals, set over piano, strings, electric guitar, and drum kit. The sound is lush, polished, and hybrid, with a mid-tempo, driving, and backbeat groove ; This leads into a calm and hopeful instrumental section. Energy is medium and builds throughout. It is instrumental, with no lead vocal, set over piano, strings, and acoustic guitar. The sound is warm, intimate, and acoustic, with a mid-tempo and laid-back groove ; Following that is a melancholic and tender verse. Energy is low and holds steady. It is carried by breathy and softly sung female vocals, set over piano and acoustic guitar. The sound is warm, intimate, and acoustic, with a slow, laid-back, and backbeat groove ; Then a hopeful and gentle pre-chorus. Energy is medium and builds throughout. It is carried by breathy and softly sung female vocals, set over piano, strings, and acoustic guitar. The sound is warm, intimate, and acoustic, with a mid-tempo, laid-back, and backbeat groove ; Then comes an uplifting and warm chorus. Energy is high and holds steady. It is carried by powerful and belted female vocals, set over piano, strings, electric guitar, and drum kit. The sound is lush, polished, and hybrid, with a mid-tempo, driving, and backbeat groove ; The song closes with a serene and hopeful outro. Energy is low and fades out. It is instrumental, with no lead vocal, set over piano and strings. The sound is warm, intimate, and acoustic, with a slow and laid-back groove.",
+    lyric: "[intro] ; [verse] 今夜雨下得很大. 像天空在替我哭泣. 我抱着膝盖坐在窗前. 数着玻璃上的水滴. 一滴两滴三滴. 都是说不出的委屈 ; [pre-chorus] 可是雨总会停的啊. 乌云总会散去的. 你看天边那一点亮光. 是太阳在等你 ; [chorus] 擦干眼泪抬起头. 彩虹就在风雨后. 生活虽然有点苦. 但你一定要记得微笑. 擦干眼泪向前走. 阳光会照进窗口. 这世界爱你的人. 比你想象的还要多 ; [inst] ; [verse] 今夜风刮得很急. 像命运在考验着我. 我裹紧了单薄的外套. 数着路灯的数量. 一盏两盏三盏. 照亮前行的方向 ; [pre-chorus] 可是风总会停的啊. 黑夜总会过去的. 你看天边那一片鱼肚白. 是黎明在等你 ; [chorus] 擦干眼泪抬起头. 彩虹就在风雨后. 生活虽然有点苦. 但你一定要记得微笑. 擦干眼泪向前走. 阳光会照进窗口. 这世界爱你的人. 比你想象的还要多 ; [outro]",
   },
   {
-    id: "DD1_ZH",
-    title: "DD1 · 华语流行抒情曲（中文）",
-    language: "中文",
-    genre: "华语流行 / 抒情",
-    mood: "感性、深情、怀旧",
-    theme: "爱与成长",
-    vocal_style: "男声",
-    structure: "[intro] 无人声 → [verse] 气声男主唱 → [chorus] 深情男主唱 → [inst] → [verse] 气声男主唱 → [chorus] 有力男主唱 → [bridge] 深情男主唱 → [chorus] 有力男主唱+和声 → [outro]",
-    plan_summary: "[intro] vocal_none → [verse] breathy male lead vocal → [chorus] passionate male lead vocal → [inst] vocal_none → [verse] breathy male lead vocal → [chorus] powerful male lead vocal → [bridge] heartfelt male lead vocal → [chorus] powerful male lead vocal, layered harmonies → [outro] vocal_none",
-    plan: {
-      global_tags: {
-        global_genre: "mandopop, ballad",
-        global_sound_style: "acoustic, hybrid",
-        global_vocal_style: "male vocal",
-        global_mood: "sentimental, emotional, nostalgic",
-        global_energy_level: "medium-high",
-        global_theme: "love, growth",
-      },
-      segments: [
-        { type: "intro",   tags: { energy_level: "very low",    relative_energy: "lower",  energy_change: "stable",           mood: "serene, contemplative, peaceful",     vocal_presence: "none",                                       function: "introduction", density: "very sparse", sound_style: "acoustic, warm, organic, clean", instrumentation: "piano" } },
-        { type: "verse",   tags: { energy_level: "low",         relative_energy: "lower",  energy_change: "increasing",       mood: "nostalgic, melancholic, sentimental", vocal_presence: "breathy male lead vocal",                    function: "sustain",      density: "sparse",      sound_style: "acoustic, warm, organic, clean", instrumentation: "piano, strings" } },
-        { type: "chorus",  tags: { energy_level: "medium-high", relative_energy: "higher", energy_change: "building to peak", mood: "sentimental, emotional, heartfelt",   vocal_presence: "passionate male lead vocal",                 function: "climax",       density: "dense",       sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "inst",    tags: { energy_level: "medium",      relative_energy: "lower",  energy_change: "decreasing",       mood: "dramatic, passionate, intense",       vocal_presence: "none",                                       function: "contrast",     density: "moderate",    sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings" } },
-        { type: "verse",   tags: { energy_level: "medium",      relative_energy: "similar",energy_change: "increasing",       mood: "dramatic, passionate, intense",       vocal_presence: "breathy male lead vocal, strained intensity",function: "sustain",      density: "moderate",    sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "chorus",  tags: { energy_level: "high",        relative_energy: "higher", energy_change: "building to peak", mood: "anthemic, emotional, powerful",       vocal_presence: "powerful male lead vocal, layered harmonies",function: "climax",       density: "dense",       sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "bridge",  tags: { energy_level: "medium-low",  relative_energy: "lower",  energy_change: "decreasing",       mood: "melancholic, introspective, heartfelt",vocal_presence: "heartfelt male lead vocal",                 function: "contrast",     density: "sparse",      sound_style: "acoustic, warm, intimate, clean",instrumentation: "piano" } },
-        { type: "chorus",  tags: { energy_level: "very high",   relative_energy: "higher", energy_change: "building to peak", mood: "anthemic, emotional, powerful",       vocal_presence: "powerful male lead vocal, layered harmonies",function: "climax",       density: "very dense",  sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "outro",   tags: { energy_level: "very low",    relative_energy: "much lower",energy_change: "decreasing",    mood: "serene, contemplative, peaceful",     vocal_presence: "none",                                       function: "conclusion",   density: "very sparse", sound_style: "acoustic, warm, organic, clean", instrumentation: "piano" } },
-      ],
+    id: "IN_106",
+    audio_idx: 5,
+    test_target: {
+      dimension: "instrumentation",
+      progression: "synth pad, drum machine → synth pad, drum machine, synth bass → acoustic guitar, upright piano, brushed drums, upright bass → synth pad, drum machine, synth bass → acoustic guitar, upright piano, brushed drums, upright bass → upright piano, cello → acoustic guitar, upright piano, brushed drums, upright bass → acoustic guitar",
     },
-    lyric: `[intro] [Music starts] [Melody continues]
-[verse] 风吹漫长长夜.心藏微弱火焰.一路跌跌撞撞.依旧奔赴明天.
-[chorus] 此刻放声歌唱.终于迎来晴朗.每次勇敢成长.都能照亮远方.
-[inst] [Instrumental Section]
-[verse] 每道深深伤痕.都成新的旅程.眼里依然有梦.心中依然有风.
-[chorus] 此刻放声歌唱.终于迎来晴朗.每次勇敢成长.都能照亮远方.
-[bridge] 愿我始终相信.光会落进生命.
-[chorus] 此刻放声歌唱.终于迎来晴朗.每次勇敢成长.都能照亮远方.
-[outro] [Music fades out]`,
-  },
-  {
-    id: "GG3_ZH",
-    title: "GG3 · 华语流行抒情曲（中文）",
-    language: "中文",
-    genre: "华语流行 / 抒情",
-    mood: "感性、忧郁、真挚",
-    theme: "温柔的回忆与思念",
-    vocal_style: "富有情感的女声",
-    structure: "[intro] 极弱 → [verse] 弱 → [chorus] 中 → [inst] 弱 → [verse] 中 → [chorus] 中偏弱 → [bridge] 弱 → [chorus] 中 → [outro] 极弱",
-    plan_summary: "[intro] very low → [verse] low → [chorus] medium → [inst] low → [verse] medium → [chorus] medium-low → [bridge] low → [chorus] medium → [outro] very low",
-    plan: {
-      global_tags: {
-        global_genre: "mandopop, ballad",
-        global_sound_style: "acoustic, hybrid",
-        global_vocal_style: "emotive female vocal",
-        global_mood: "sentimental, melancholic, heartfelt",
-        global_energy_level: "medium",
-        global_theme: "gentle memory, longing",
-      },
-      segments: [
-        { type: "intro",  tags: { energy_level: "very low",   relative_energy: "lower",   energy_change: "stable",           mood: "serene, contemplative, peaceful",     vocal_presence: "none",                    function: "introduction", density: "very sparse", sound_style: "acoustic, warm, organic, clean", instrumentation: "piano" } },
-        { type: "verse",  tags: { energy_level: "low",        relative_energy: "similar", energy_change: "increasing",       mood: "nostalgic, melancholic, sentimental",vocal_presence: "emotive female lead vocal",function: "sustain",      density: "sparse",      sound_style: "acoustic, warm, organic, clean", instrumentation: "piano, strings" } },
-        { type: "chorus", tags: { energy_level: "medium",     relative_energy: "higher",  energy_change: "building to peak", mood: "sentimental, emotional, heartfelt",  vocal_presence: "emotive female lead vocal",function: "climax",       density: "moderate",    sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "inst",   tags: { energy_level: "low",        relative_energy: "lower",   energy_change: "decreasing",       mood: "calm, introspective, melancholic",   vocal_presence: "none",                    function: "contrast",     density: "sparse",      sound_style: "acoustic, warm, organic, clean", instrumentation: "piano" } },
-        { type: "verse",  tags: { energy_level: "medium",     relative_energy: "similar", energy_change: "increasing",       mood: "nostalgic, melancholic, sentimental",vocal_presence: "emotive female lead vocal",function: "sustain",      density: "moderate",    sound_style: "acoustic, warm, organic, clean", instrumentation: "piano, strings" } },
-        { type: "chorus", tags: { energy_level: "medium-low", relative_energy: "lower",   energy_change: "decreasing",       mood: "melancholic, introspective, sentimental",vocal_presence: "emotive female lead vocal",function: "climax",     density: "sparse",      sound_style: "acoustic, warm, organic, clean", instrumentation: "piano, strings" } },
-        { type: "bridge", tags: { energy_level: "low",        relative_energy: "lower",   energy_change: "decreasing",       mood: "melancholic, introspective, wistful",vocal_presence: "emotive female lead vocal",function: "contrast",     density: "sparse",      sound_style: "acoustic, warm, intimate, clean",instrumentation: "piano" } },
-        { type: "chorus", tags: { energy_level: "medium",     relative_energy: "similar", energy_change: "stable",           mood: "sentimental, nostalgic, heartfelt",  vocal_presence: "emotive female lead vocal",function: "climax",       density: "moderate",    sound_style: "hybrid, polished, warm",         instrumentation: "piano, strings, bass, drums" } },
-        { type: "outro",  tags: { energy_level: "very low",   relative_energy: "lower",   energy_change: "decreasing",       mood: "serene, contemplative, peaceful",    vocal_presence: "none",                    function: "conclusion",   density: "very sparse", sound_style: "acoustic, warm, organic, clean", instrumentation: "piano" } },
-      ],
-    },
-    lyric: `[intro] [Piano Intro] [Melody continues]
-[verse] 云慢慢地飘远.风静静绕耳边.故事轻轻沉淀.心事悄然舒展.
-[chorus] 顺着时间流淌.所有悲伤退场.明天依旧晴朗.
-[inst] [Instrumental Section]
-[verse] 河流缓缓歌唱.晚霞映红山岗.世界温柔生长.
-[chorus] 顺着时间流淌.所有悲伤退场.明天依旧晴朗.
-[bridge] 一切都会安然.
-[chorus] 顺着时间流淌.所有悲伤退场.明天依旧晴朗.
-[outro] [Music fades out]`,
+    caption: "An eight-section electronic song with elements of acoustic pop ; It opens with a dreamy and suspended intro. Energy is low and builds throughout. It is instrumental, with no lead vocal, set over synth pad and drum machine. The sound is cold, polished, and electronic, with a slow and sparse pulse groove ; Then comes a dreamy and introspective verse. Energy is medium and holds steady. It is carried by breathy and softly sung female vocals, set over synth pad, drum machine, and synth bass. The sound is clean, polished, and electronic, with a mid-tempo, laid-back, and backbeat groove ; Next is an euphoric and uplifting chorus. Energy is high and holds steady. It is carried by bright and sung female vocals, set over acoustic guitar, upright piano, brushed drums, and upright bass. The sound is bright, polished, and organic, with a uptempo, driving, and four-on-the-floor groove ; After that comes a dreamy and introspective verse. Energy is medium and holds steady. It is carried by breathy and softly sung female vocals, set over synth pad, drum machine, and synth bass. The sound is clean, polished, and electronic, with a mid-tempo, laid-back, and backbeat groove ; This leads into an euphoric and uplifting chorus. Energy is high and holds steady. It is carried by bright and sung female vocals, set over acoustic guitar, upright piano, brushed drums, and upright bass. The sound is bright, polished, and organic, with a uptempo, driving, and four-on-the-floor groove ; Following that is a suspended and dreamy bridge. Energy is medium and builds throughout. It is carried by bright and sung female vocals, set over upright piano and cello. The sound is warm, intimate, and acoustic, with a mid-tempo and halftime groove ; Then an euphoric and uplifting chorus. Energy is high and holds steady. It is carried by bright and sung female vocals, set over acoustic guitar, upright piano, brushed drums, and upright bass. The sound is bright, polished, and organic, with a uptempo, driving, and four-on-the-floor groove ; It ends with a dreamy and serene outro. Energy is low and fades out. It is instrumental, with no lead vocal, set over acoustic guitar. The sound is warm, intimate, and acoustic, with a slow and sparse pulse groove.",
+    lyric: "[intro] ; [verse] 屏幕亮了一整夜. 代码写了上千行. 咖啡杯空了又满. 窗外天光微微亮. 我在这数字的森林里. 寻找一颗真实的心脏 ; [chorus] 脱下所有的盔甲. 卸下所有的伪装. 我只想简简单单地. 坐在阳光下弹着吉他唱. 没有滤镜没有特效. 只有风穿过指缝的清凉. 这才是我最真的模样 ; [verse] 朋友圈里的完美人生. 滤镜下的精致脸庞. 点赞数涨了又涨. 心里却空了一块地方. 我在这虚拟的花园里. 怀念泥土的芬芳 ; [chorus] 脱下所有的盔甲. 卸下所有的伪装. 我只想简简单单地. 坐在阳光下弹着吉他唱. 没有滤镜没有特效. 只有风穿过指缝的清凉. 这才是我最真的模样 ; [bridge] 真实一点. 简单一点. 慢一点. 再慢一点 ; [chorus] 脱下所有的盔甲. 卸下所有的伪装. 我只想简简单单地. 坐在阳光下弹着吉他唱. 没有滤镜没有特效. 只有风穿过指缝的清凉. 这才是我最真的模样 ; [outro]",
   },
 ];
 
@@ -355,8 +164,8 @@ window.SONGS = [
 window.COS_UPLOAD = {
   Bucket: "yutangfeng-1459725450",
   Region: "ap-guangzhou",
-  Prefix: "eval_data_AAAI_submissions/",
+  Prefix: "eval_data_ICLR_submissions/",
 };
 
 // 匿名标签（会按每个评测者独立随机映射到 MODELS）
-window.ANON_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+window.ANON_LABELS = ["A", "B", "C", "D", "E", "F"];

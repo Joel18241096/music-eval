@@ -21,7 +21,7 @@
   const SONGS = window.SONGS;
   const ANON_LABELS = window.ANON_LABELS;
   const COS_UPLOAD = window.COS_UPLOAD;
-  const STORAGE_KEY = "music_eval_state_v1";
+  const STORAGE_KEY = "music_eval_samples_state";
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -105,13 +105,16 @@
     const perSong = state.mappings[songId] || {};
     const modelKey = perSong[anonLabel];
     const model = MODELS.find((m) => m.key === modelKey);
+    const song = SONGS.find((s) => s.id === songId);
+    const idx = song && song.audio_idx;
     const base = (window.AUDIO_BASE || "").replace(/\/+$/, "");   // 去掉末尾斜杠
     if (base) {
-      // 生产环境: 从 COS 拉取, key = <folder>_<songId>.<ext>
-      return `${base}/${model.folder}_${songId}.${model.ext}`;
+      // 生产环境: 从 COS 拉取, key = <AUDIO_BASE>/<folder>/demo<audio_idx>.<ext>
+      // 对应 scripts/upload_samples.py 里的 COS key 命名: ICLR2027_musicstar/samples/<folder>/demo<N>.<ext>
+      return `${base}/${model.folder}/demo${idx}.${model.ext}`;
     }
-    // 本地开发回退: 从仓库内的 demo/ 目录读取
-    return `demo/${model.folder}/${songId}.${model.ext}`;
+    // 本地开发回退: 从仓库内的 samples/ 目录读取
+    return `samples/${model.folder}/demo${idx}.${model.ext}`;
   }
 
   // 某首歌是否已全部打完分
@@ -239,17 +242,21 @@
     renderSongNav();
 
     // 歌曲信息 (前端标题统一显示为 Sample 0N, 后台记录仍用真实 song.id)
+    // 注意: 数据来自 prompt_lyrics.md 原文, 仅保留 test_target / caption / lyric 三个字段
     $("#song-title").textContent = displayName(state.currentSong);
-    $("#tag-lang").textContent   = song.language;
-    $("#tag-genre").textContent  = song.genre;
-    $("#tag-mood").textContent   = song.mood;
-    $("#tag-vocal").textContent  = song.vocal_style;
-    $("#song-lyric").textContent = song.lyric;
-    // 设计概要: 简短的段落级演进 (从 plan_summary 取)
-    $("#song-plan-summary").textContent = song.plan_summary || song.structure || "";
-    // 完整 Plan: 全局标签 + 每个段落的详细标签
-    renderPlanGlobal(song.plan && song.plan.global_tags);
-    renderPlanSegments(song.plan && song.plan.segments);
+
+    // 歌词: 把 md 里的 " ; " 段落分隔符渲染为换行, 让 [intro]/[verse]/[chorus] 一段一行
+    $("#song-lyric").textContent = formatSemicolonBlocks(song.lyric || "");
+
+    // 测试目标: 显示 dimension + 段落级演进 (箭头链)
+    const tt = song.test_target || {};
+    $("#song-test-target").textContent =
+      tt.dimension
+        ? `[${tt.dimension}]  ${tt.progression || ""}`
+        : "";
+
+    // Prompt 原文 (caption): 段落级 prompt, 同样按 " ; " 分段展示
+    $("#song-caption").textContent = formatSemicolonBlocks(song.caption || "");
 
     // 系统卡片
     const container = $("#systems-container");
@@ -267,87 +274,15 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // 渲染完整 Plan - 全局标签区
-  function renderPlanGlobal(globalTags) {
-    const el = $("#song-plan-global");
-    el.innerHTML = "";
-    if (!globalTags) return;
-    const wrap = document.createElement("div");
-    wrap.className = "plan-global";
-    const title = document.createElement("div");
-    title.className = "plan-block-title";
-    title.textContent = "🌐 全局标签";
-    wrap.appendChild(title);
-    const chips = document.createElement("div");
-    chips.className = "plan-chips";
-    const KEY_LABEL = {
-      global_genre:        "曲风",
-      global_sound_style:  "音色风格",
-      global_vocal_style:  "演唱风格",
-      global_mood:         "情绪",
-      global_energy_level: "能量",
-      global_theme:        "主题",
-    };
-    Object.keys(globalTags).forEach((k) => {
-      const chip = document.createElement("span");
-      chip.className = "plan-chip";
-      chip.innerHTML =
-        `<span class="chip-k">${KEY_LABEL[k] || k}</span>` +
-        `<span class="chip-v">${globalTags[k]}</span>`;
-      chips.appendChild(chip);
-    });
-    wrap.appendChild(chips);
-    el.appendChild(wrap);
-  }
-
-  // 渲染完整 Plan - 段落时间线
-  function renderPlanSegments(segments) {
-    const el = $("#song-plan-segments");
-    el.innerHTML = "";
-    if (!segments || !segments.length) return;
-    const wrap = document.createElement("div");
-    wrap.className = "plan-segments";
-    const title = document.createElement("div");
-    title.className = "plan-block-title";
-    title.textContent = "🎬 段落细节 (逐段标签)";
-    wrap.appendChild(title);
-
-    const TAG_LABEL = {
-      energy_level:    "能量",
-      relative_energy: "相对能量",
-      energy_change:   "变化",
-      mood:            "情绪",
-      vocal_presence:  "人声",
-      function:        "功能",
-      density:         "密度",
-      sound_style:     "音色",
-      instrumentation: "配器",
-    };
-
-    segments.forEach((seg, idx) => {
-      const box = document.createElement("div");
-      box.className = "plan-seg";
-      const head = document.createElement("div");
-      head.className = "plan-seg-head";
-      head.innerHTML =
-        `<span class="plan-seg-idx">${idx + 1}</span>` +
-        `<span class="plan-seg-type">[${seg.type}]</span>`;
-      box.appendChild(head);
-      const chips = document.createElement("div");
-      chips.className = "plan-chips small";
-      const tags = seg.tags || {};
-      Object.keys(tags).forEach((k) => {
-        const chip = document.createElement("span");
-        chip.className = "plan-chip";
-        chip.innerHTML =
-          `<span class="chip-k">${TAG_LABEL[k] || k}</span>` +
-          `<span class="chip-v">${tags[k]}</span>`;
-        chips.appendChild(chip);
-      });
-      box.appendChild(chips);
-      wrap.appendChild(box);
-    });
-    el.appendChild(wrap);
+  // 把 prompt_lyrics.md 里的 " ; " 分隔符替换为换行, 让 caption / lyric 展示更易读
+  // 例:  "[intro] ; [verse] xxx ; [chorus] yyy"  →  "[intro]\n[verse] xxx\n[chorus] yyy"
+  function formatSemicolonBlocks(text) {
+    if (!text) return "";
+    return String(text)
+      .split(/\s*;\s*/)         // 按 ; 拆段落, 顺带吃掉两侧空白
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join("\n");
   }
 
   // 歌曲快捷跳转按钮组
